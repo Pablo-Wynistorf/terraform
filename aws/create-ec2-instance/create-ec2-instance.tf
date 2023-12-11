@@ -7,52 +7,73 @@ variable "var-region" {
   description = "In what region do you want the infrastructure?"
 }
 
+variable "var-ami" {
+  description = "In what ami do you want for your ec2 instance?"
+}
+
+variable "var-instance-type" {
+  description = "In what instance type do you want for your ec2 instance?"
+}
+
+variable "var-ssh-keyname" {
+  description = "In what ssh key do you want to use for your ec2 instance? (Without .pem)"
+}
+
+variable "var-private-ip" {
+  description = "Set a private ip for your instance"
+}
+
+variable "var-subnet-id" {
+  description = "Set a subnet id for your instance"
+}
+
+variable "var-security_group-id" {
+  description = "Set a security group id for your instance"
+}
+
+variable "var-volume-size" {
+  description = "Set a volume size for your instance (GB)"
+}
+
+
 # Create a new EC2 instance
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0574da719dca65348"
-  instance_type = "t2.large"
-  key_name      = "ssh"
-  private_ip = "10.1.1.30"
-  subnet_id = "subnet-04cd85e056c9c62a5"
-  security_groups = ["sg-0d0a98cd48a506b7d"]
+  ami           = var.var-ami
+  instance_type = var.var-instance-type
+  key_name      = var.var-ssh-keyname
+  private_ip = var.var-private-ip
+  subnet_id = var.var-subnet-id
+  security_groups = [var.var-security_group-id]
 
 
   # Add a root volume
   root_block_device {
-    volume_size = "10"
+    volume_size = var.var-volume-size
     volume_type = "gp2"
   }
 
-
-user_data = <<EOF
-#cloud-config
-hostname: nextcloud-server
-
-packages:
-  - docker
-  - docker-compose
-  - net-tools
-
-# Write the Docker Compose file
-write_files:
-  - path: /nextcloud/docker-compose.yml
-    content: |
-      version: '2'
-      volumes:
-        nextcloud:
-      services:
-        app:
-          image: nextcloud
-          restart: unless-stopped
-          ports:
-          - 80:80
-          volumes:
-          - /nextcloud/data:/var/www/html
-
-runcmd:
-  - [sh, -c, "docker-compose -f /nextcloud/docker-compose.yml up -d"]
-EOF
 }
 output "ec2_public_ip" {
 value = "${aws_instance.ec2_instance.public_ip}"
+}
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+var-region            = "${var.var-region}"
+var-ami               = "${var.var-ami}"
+var-instance-type     = "${var.var-instance-type}"
+var-ssh-keyname       = "${var.var-ssh-keyname}"
+var-private-ip        = "${var.var-private-ip}"
+var-subnet-id         = "${var.var-subnet-id}"
+var-security_group-id = "${var.var-security_group-id}"
+var-volume-size       = "${var.var-volume-size}"
+  EOT
+}
+
+
+
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
 }
