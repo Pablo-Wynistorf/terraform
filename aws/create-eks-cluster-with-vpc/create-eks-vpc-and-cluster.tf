@@ -23,7 +23,7 @@ variable "vpc-name" {
 }
 
 variable "subnet-name" {
-  description = "Define the name of the subnets (Format:___-az-subnet-nr.)"
+  description = "Enter the subnet nameconcept (___-ZONE-AZ)"
 }
 
 variable "node-instancetype" {

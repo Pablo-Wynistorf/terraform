@@ -11,7 +11,7 @@ variable "vpc-name" {
 }
 
 variable "subnet-name" {
-  description = "Enter the subnet nameconcept (___-AZ-SUBNET-NR.)"
+  description = "Enter the subnet nameconcept (___-ZONE-AZ-NR.)"
 }
 
 # Create a VPC
