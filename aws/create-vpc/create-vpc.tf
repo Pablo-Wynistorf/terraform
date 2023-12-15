@@ -62,10 +62,9 @@ gateway_id = "${aws_internet_gateway.internet-gateway.id}"
 
 
 
-# Create a public subnet-a
-resource "aws_subnet" "eks-a-1" {
+resource "aws_subnet" "srv-a-1" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.1.0/24"
+  cidr_block = "10.2.1.0/24"
   availability_zone = "${var.var-region}a"
   map_public_ip_on_launch = true
     tags = {
@@ -75,28 +74,28 @@ resource "aws_subnet" "eks-a-1" {
   }
 }
 # Create a private subnet-a
-resource "aws_subnet" "eks-a-2" {
+resource "aws_subnet" "srv-a-2" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.2.0/24"
+  cidr_block = "10.2.10.0/24"
   availability_zone = "${var.var-region}a"
     tags = {
-    Name = "${var.subnet-name}-nodes-a-2"
+    Name = "${var.subnet-name}-nodes-a-1"
   }
 }
 # Create a private subnet-a
-resource "aws_subnet" "eks-a-3" {
+resource "aws_subnet" "srv-a-3" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.3.0/24"
+  cidr_block = "10.2.110.0/24"
   availability_zone = "${var.var-region}a"
     tags = {
-    Name = "${var.subnet-name}-app-a-3"
+    Name = "${var.subnet-name}-app-a-1"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
 # Create a public subnet-b
-resource "aws_subnet" "eks-b-1" {
+resource "aws_subnet" "srv-b-1" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.4.0/24"
+  cidr_block = "10.2.2.0/24"
   map_public_ip_on_launch = true
   availability_zone = "${var.var-region}b"
     tags = {
@@ -106,28 +105,28 @@ resource "aws_subnet" "eks-b-1" {
   }
 }
 # Create a private subnet-b
-resource "aws_subnet" "eks-b-2" {
+resource "aws_subnet" "srv-b-2" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.5.0/24"
+  cidr_block = "10.2.20.0/24"
   availability_zone = "${var.var-region}b"
     tags = {
-    Name = "${var.subnet-name}-nodes-b-2"
+    Name = "${var.subnet-name}-nodes-b-1"
   }
 }
 # Create a private subnet-b
-resource "aws_subnet" "eks-b-3" {
+resource "aws_subnet" "srv-b-3" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.6.0/24"
+  cidr_block = "10.2.120.0/24"
   availability_zone = "${var.var-region}b"
     tags = {
-    Name = "${var.subnet-name}-app-b-3"
+    Name = "${var.subnet-name}-app-b-1"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
 # Create a public subnet-c
-resource "aws_subnet" "eks-c-1" {
+resource "aws_subnet" "srv-c-1" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.7.0/24"
+  cidr_block = "10.2.3.0/24"
   map_public_ip_on_launch = true
   availability_zone = "${var.var-region}c"
     tags = {
@@ -137,21 +136,21 @@ resource "aws_subnet" "eks-c-1" {
   }
 }
 # Create a private subnet-c
-resource "aws_subnet" "eks-c-2" {
+resource "aws_subnet" "srv-c-2" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.8.0/24"
+  cidr_block = "10.2.30.0/24"
   availability_zone = "${var.var-region}c"
     tags = {
-    Name = "${var.subnet-name}-nodes-c-2"
+    Name = "${var.subnet-name}-nodes-c-1"
   }
 }
 # Create a private subnet-c
-resource "aws_subnet" "eks-c-3" {
+resource "aws_subnet" "srv-c-3" {
   vpc_id     = aws_vpc.srv-vpc.id
-  cidr_block = "10.1.9.0/24"
+  cidr_block = "10.2.130.0/24"
   availability_zone = "${var.var-region}c"
     tags = {
-    Name = "${var.subnet-name}-app-c-3"
+    Name = "${var.subnet-name}-app-c-1"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -159,7 +158,7 @@ resource "aws_subnet" "eks-c-3" {
 # Create a NAT-Gateway
 resource "aws_nat_gateway" "nat-gateway" {
   allocation_id = aws_eip.nat-gateway-eip.id
-  subnet_id     = aws_subnet.eks-a-1.id
+  subnet_id     = aws_subnet.srv-a-1.id
 }
 
 
@@ -181,48 +180,48 @@ resource "aws_main_route_table_association" "main_route_table_association" {
 }
 
 # Create route table assosiation
-resource "aws_route_table_association" "Connect-eks-a-1" {
-  subnet_id = "${aws_subnet.eks-a-1.id}"
+resource "aws_route_table_association" "Connect-srv-a-1" {
+  subnet_id = "${aws_subnet.srv-a-1.id}"
   route_table_id = "${aws_route_table.main_route_table.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-a-2" {
-  subnet_id = "${aws_subnet.eks-a-2.id}"
+resource "aws_route_table_association" "Connect-srv-a-2" {
+  subnet_id = "${aws_subnet.srv-a-2.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-a-3" {
-  subnet_id = "${aws_subnet.eks-a-3.id}"
+resource "aws_route_table_association" "Connect-srv-a-3" {
+  subnet_id = "${aws_subnet.srv-a-3.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-b-1" {
-  subnet_id = "${aws_subnet.eks-b-1.id}"
+resource "aws_route_table_association" "Connect-srv-b-1" {
+  subnet_id = "${aws_subnet.srv-b-1.id}"
   route_table_id = "${aws_route_table.main_route_table.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-b-2" {
-  subnet_id = "${aws_subnet.eks-b-2.id}"
+resource "aws_route_table_association" "Connect-srv-b-2" {
+  subnet_id = "${aws_subnet.srv-b-2.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-b-3" {
-  subnet_id = "${aws_subnet.eks-b-3.id}"
+resource "aws_route_table_association" "Connect-srv-b-3" {
+  subnet_id = "${aws_subnet.srv-b-3.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-c-1" {
-  subnet_id = "${aws_subnet.eks-c-1.id}"
+resource "aws_route_table_association" "Connect-srv-c-1" {
+  subnet_id = "${aws_subnet.srv-c-1.id}"
   route_table_id = "${aws_route_table.main_route_table.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-c-2" {
-  subnet_id = "${aws_subnet.eks-c-2.id}"
+resource "aws_route_table_association" "Connect-srv-c-2" {
+  subnet_id = "${aws_subnet.srv-c-2.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 
-resource "aws_route_table_association" "Connect-eks-c-3" {
-  subnet_id = "${aws_subnet.eks-c-3.id}"
+resource "aws_route_table_association" "Connect-srv-c-3" {
+  subnet_id = "${aws_subnet.srv-c-3.id}"
   route_table_id = "${aws_route_table.nat-gatway-rt.id}"
 }
 

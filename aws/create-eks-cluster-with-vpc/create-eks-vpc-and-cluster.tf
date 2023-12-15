@@ -103,7 +103,7 @@ resource "aws_subnet" "eks-a-1" {
   availability_zone = "${var.var-region}a"
   map_public_ip_on_launch = true
     tags = {
-    Name = "${var.subnet-name}-public-a-1"
+    Name = "${var.subnet-name}-public-a"
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/role/elb" = "1"
   }
@@ -114,7 +114,7 @@ resource "aws_subnet" "eks-a-2" {
   cidr_block = "10.1.8.0/21"
   availability_zone = "${var.var-region}a"
     tags = {
-    Name = "${var.subnet-name}-app-a-2"
+    Name = "${var.subnet-name}-app-a"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -124,7 +124,7 @@ resource "aws_subnet" "eks-a-3" {
   cidr_block = "10.1.64.0/18"
   availability_zone = "${var.var-region}a"
     tags = {
-    Name = "${var.subnet-name}-eks-a-3"
+    Name = "${var.subnet-name}-eks-a"
   }
 }
 # Create a public subnet-b
@@ -134,7 +134,7 @@ resource "aws_subnet" "eks-b-1" {
   map_public_ip_on_launch = true
   availability_zone = "${var.var-region}b"
     tags = {
-    Name = "${var.subnet-name}-public-b-1"
+    Name = "${var.subnet-name}-public-b"
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/role/elb" = "1"
   }
@@ -145,7 +145,7 @@ resource "aws_subnet" "eks-b-2" {
   cidr_block = "10.1.16.0/21"
   availability_zone = "${var.var-region}b"
     tags = {
-    Name = "${var.subnet-name}-app-b-2"
+    Name = "${var.subnet-name}-app-b"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -155,7 +155,7 @@ resource "aws_subnet" "eks-b-3" {
   cidr_block = "10.1.128.0/18"
   availability_zone = "${var.var-region}b"
     tags = {
-    Name = "${var.subnet-name}-eks-b-3"
+    Name = "${var.subnet-name}-eks-b"
   }
 }
 # Create a public subnet-c
@@ -165,7 +165,7 @@ resource "aws_subnet" "eks-c-1" {
   map_public_ip_on_launch = true
   availability_zone = "${var.var-region}c"
     tags = {
-    Name = "${var.subnet-name}-public-c-1"
+    Name = "${var.subnet-name}-public-c"
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/role/elb" = "1"
   }
@@ -176,7 +176,7 @@ resource "aws_subnet" "eks-c-2" {
   cidr_block = "10.1.24.0/21"
   availability_zone = "${var.var-region}c"
     tags = {
-    Name = "${var.subnet-name}-app-c-2"
+    Name = "${var.subnet-name}-app-c"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -186,7 +186,7 @@ resource "aws_subnet" "eks-c-3" {
   cidr_block = "10.1.192.0/18"
   availability_zone = "${var.var-region}c"
     tags = {
-    Name = "${var.subnet-name}-eks-c-3"
+    Name = "${var.subnet-name}-eks-c"
   }
 }
 
