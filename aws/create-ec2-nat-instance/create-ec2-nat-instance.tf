@@ -10,6 +10,10 @@ variable "var-vpc-id" {
   description = "Enter the name of your vpc"
 }
 
+variable "var-instance-ami" {
+  description = "Enter the ami of of your nat instance (Must be amazon linux)"
+}
+
 variable "var-instance-type" {
   description = "Enter the instance type of your nat instance"
 }
@@ -22,8 +26,9 @@ variable "var-vpc-cidr" {
   description = "Enter the cidr of your vpc"
 }
 
+
 resource "aws_instance" "ec2-nat-instance" {
-  ami           = "ami-0a06e64cabecd1dd2"
+  ami           = var.var-instance-ami
   instance_type = var.var-instance-type
   subnet_id     = var.var-subnet-id
   vpc_security_group_ids = [aws_security_group.open-ingress-local.id]
