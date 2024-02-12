@@ -78,6 +78,7 @@ resource "aws_security_group" "open-ingress-local" {
 data "template_file" "render-var-file" {
   template = <<-EOT
 var-region            = "${var.var-region}"
+var-instance-ami      = "${var.var-instance-ami}"
 var-instance-type     = "${var.var-instance-type}"
 var-subnet-id         = "${var.var-subnet-id}"
 var-vpc-id            = "${var.var-vpc-id}"
