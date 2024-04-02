@@ -26,3 +26,16 @@ output "acm_certificate_validation_dns_records_name" {
 output "acm_certificate_validation_dns_records_value" {
   value = aws_acm_certificate.domain_request.domain_validation_options[*].resource_record_value
 }
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+var-region            = "${var.var-region}"
+var-hostname          = "${var.var-hostname}"
+var-method            = "${var.var-method}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
+}

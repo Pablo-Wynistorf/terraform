@@ -69,9 +69,6 @@ var-volume-size       = "${var.var-volume-size}"
   EOT
 }
 
-
-
-
 resource "local_file" "create-var-file" {
   content  = data.template_file.render-var-file.rendered
   filename = "terraform.tfvars"

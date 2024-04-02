@@ -20,3 +20,15 @@ resource "local_file" "ssh-key" {
     content  = tls_private_key.rsa.private_key_pem
     filename = "ssh.pem"
 }
+
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+var-region            = "${var.var-region}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
+}

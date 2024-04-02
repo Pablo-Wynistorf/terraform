@@ -14,6 +14,7 @@ variable "subnet-name" {
   description = "Enter the subnet nameconcept (___-ZONE-AZ-NR.)"
 }
 
+
 # Create a VPC
 resource "aws_vpc" "ecs-vpc" {
   cidr_block = "10.2.0.0/16"
@@ -676,4 +677,18 @@ resource "aws_security_group" "efs-access--connect-site" {
     tags = {
     Name = "EFS-ACCESS--CONNECT-SITE"
   }
+}
+
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+var-region            = "${var.var-region}"
+vpc-name              = "${var.vpc-name}"
+subnet-name           = "${var.subnet-name}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
 }

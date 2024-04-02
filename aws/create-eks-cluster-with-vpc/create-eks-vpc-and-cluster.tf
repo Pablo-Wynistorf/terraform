@@ -46,8 +46,6 @@ variable "node-count-min" {
   description = "Define the minimum number of nodes you want in your cluster"
 }
 
-
-
 # Create a VPC
 resource "aws_vpc" "eks-vpc" {
   cidr_block = "10.1.0.0/16"
@@ -837,15 +835,30 @@ resource "aws_eks_addon" "kube_proxy" {
 }
 
 
-resource "aws_eks_addon" "amazon_vpc_cni" {
-  cluster_name = aws_eks_cluster.eks-cluster.name
-  addon_name = "vpc-cni"
-}
-
-
-
 resource "null_resource" "send-ps-command" {
   provisioner "local-exec" {
     command = "aws eks --region ${var.var-region} update-kubeconfig --name ${aws_eks_cluster.eks-cluster.name}"
   }
+}
+
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+addons-installed       = "${var.addons-installed}"
+var-region             = "${var.var-region}"
+cluster-name           = "${var.cluster-name}"
+kubernetes-version     = "${var.kubernetes-version}"
+vpc-name               = "${var.vpc-name}"
+subnet-name            = "${var.subnet-name}"
+node-instancetype      = "${var.node-instancetype}"
+node-instancediskspace = "${var.node-instancediskspace}"
+node-count-des         = "${var.node-count-des}"
+node-count-max         = "${var.node-count-max}"
+node-count-min         = "${var.node-count-min}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
 }

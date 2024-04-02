@@ -677,3 +677,17 @@ resource "aws_security_group" "efs-access--connect-site" {
     Name = "EFS-ACCESS--CONNECT-SITE"
   }
 }
+
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+var-region             = "${var.var-region}"
+vpc-name               = "${var.vpc-name}"
+subnet-name            = "${var.subnet-name}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
+}

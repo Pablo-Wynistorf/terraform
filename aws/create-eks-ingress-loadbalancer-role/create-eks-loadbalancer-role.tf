@@ -26,7 +26,6 @@ data "aws_eks_cluster" "cluster-name" {
 }
 
 
-
 resource "aws_iam_role" "AmazonEKSLoadBalancerControllerRole" {
   name = "AmazonEKSLoadBalancerControllerRole"
 
@@ -363,3 +362,17 @@ resource "null_resource" "add-oidc-provider" {
   }
 }
 
+
+data "template_file" "render-var-file" {
+  template = <<-EOT
+addons-installed       = "${var.addons-installed}"
+var-region             = "${var.var-region}"
+var-nodecount          = "${var.var-nodecount}"
+var-cluster-name       = "${var.var-cluster-name}"
+  EOT
+}
+
+resource "local_file" "create-var-file" {
+  content  = data.template_file.render-var-file.rendered
+  filename = "terraform.tfvars"
+}
