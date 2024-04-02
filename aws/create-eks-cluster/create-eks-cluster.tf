@@ -64,7 +64,10 @@ resource "aws_iam_role_policy_attachment" "attach_AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-
+resource "aws_iam_role_policy_attachment" "attach_EC2_SSM_POLICY" {
+  role       = aws_iam_role.createEKSNodeRole.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+}
 
 resource "aws_iam_role_policy_attachment" "attach_AmazonEC2ContainerRegistryReadOnlyPolicy" {
   role       = aws_iam_role.createEKSNodeRole.name
