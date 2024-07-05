@@ -19,7 +19,7 @@ variable "var-instance-type" {
 }
 
 variable "var-subnet-id" {
-  description = "Enter the name of your vpc"
+  description = "Enter the subnet id of your nat instance"
 }
 
 variable "var-vpc-cidr" {

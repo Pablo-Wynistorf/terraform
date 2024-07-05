@@ -22,6 +22,14 @@ variable "vpc-name" {
   description = "Define the name of the vpc"
 }
 
+variable "var-nat-instance-ami" {
+  description = "Enter the ami of of your nat instance (Must be amazon linux)"
+}
+
+variable "var-nat-instance-type" {
+  description = "Enter the instance type of your nat instance"
+}
+
 variable "subnet-name" {
   description = "Enter the subnet nameconcept (___-ZONE-AZ)"
 }
@@ -55,33 +63,57 @@ resource "aws_vpc" "eks-vpc" {
     Name = "${var.vpc-name}"
   }
 }
- 
-#create ssh key pair
-resource "aws_key_pair" "ssh-key" {
-  key_name   = "eks-nodes"
-  public_key = tls_private_key.rsa.public_key_openssh
-}
 
-resource "tls_private_key" "rsa" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-#download key pair
-resource "local_file" "ssh-key" {
-    content  = tls_private_key.rsa.private_key_pem
-    filename = "eks-nodes.pem"
-}
 
 # Create an Internet Gateway
 resource "aws_internet_gateway" "internet-gateway" {
   vpc_id = aws_vpc.eks-vpc.id
 }
 
-# Create a NAT-Gateway EIP
-resource "aws_eip" "nat-gateway-eip" {
+
+resource "aws_instance" "ec2-nat-instance" {
+  ami           = var.var-nat-instance-ami
+  instance_type = var.var-nat-instance-type
+  subnet_id     = aws_subnet.eks-a-1.id
+  vpc_security_group_ids = [aws_security_group.open-ingress-local.id]
+  source_dest_check = false
+  tags = {
+    Name = "NAT-Instance"
+  }
+  user_data = <<-EOF
+  #!/bin/bash
+  sudo yum install iptables-services -y
+  sudo systemctl enable iptables
+  sudo systemctl start iptables
+  echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.d/custom-ip-forwarding.conf
+  sudo sysctl -p /etc/sysctl.d/custom-ip-forwarding.conf
+  iface=$(netstat -i | grep "BMRU" | awk '{print $1}')
+  sudo /sbin/iptables -t nat -A POSTROUTING -o $iface -j MASQUERADE
+  sudo /sbin/iptables -F FORWARD
+  sudo service iptables save
+  EOF
 }
 
+resource "aws_security_group" "open-ingress-local" {
+  name        = "OPEN-INGRESS-LOCAL"
+  description = "All Ports open in vpc cidr"
+  vpc_id      = aws_vpc.eks-vpc.id
+  ingress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["10.1.0.0/16"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+    tags = {
+    Name = "OPEN-INGRESS-LOCAL"
+  }
+}
 
 # Create a route table to internet gatway
 resource "aws_route_table" "main_route_table" {
@@ -91,7 +123,6 @@ cidr_block = "0.0.0.0/0"
 gateway_id = "${aws_internet_gateway.internet-gateway.id}"
 }
 }
-
 
 
 # Create a public subnet-a
@@ -188,12 +219,6 @@ resource "aws_subnet" "eks-c-3" {
   }
 }
 
-# Create a NAT-Gateway
-resource "aws_nat_gateway" "nat-gateway" {
-  allocation_id = aws_eip.nat-gateway-eip.id
-  subnet_id     = aws_subnet.eks-a-1.id
-}
-
 
 resource "aws_db_subnet_group" "eks_db_subnet_group" {
   name       = "app-db-subnet-group"
@@ -209,7 +234,7 @@ resource "aws_route_table" "nat-gatway-rt" {
 resource "aws_route" "nat-gatway-route" {
   route_table_id         = aws_route_table.nat-gatway-rt.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat-gateway.id
+  network_interface_id   = aws_instance.ec2-nat-instance.primary_network_interface_id
 }
 
 resource "aws_main_route_table_association" "main_route_table_association" {
@@ -765,8 +790,6 @@ resource "aws_iam_role_policy_attachment" "attach_AmazonEKSClusterPolicyNode" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-
-
 resource "aws_iam_role_policy_attachment" "attach_AmazonEKSWorkerNodePolicy" {
   role       = aws_iam_role.createEKSNodeRole.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -774,7 +797,7 @@ resource "aws_iam_role_policy_attachment" "attach_AmazonEKSWorkerNodePolicy" {
 
 resource "aws_iam_role_policy_attachment" "attach_EC2_SSM_POLICY" {
   role       = aws_iam_role.createEKSNodeRole.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
 }
 
 resource "aws_iam_role_policy_attachment" "attach_AmazonEC2ContainerRegistryReadOnlyPolicy" {
@@ -824,9 +847,6 @@ resource "aws_eks_node_group" "eks-cluster-node-group" {
   }
   disk_size = "${var.node-instancediskspace}"
   instance_types = ["${var.node-instancetype}"]
-  remote_access {
-    ec2_ssh_key = "eks-nodes"
-  }
 }
 
 resource "aws_eks_addon" "kube_proxy" {
@@ -846,6 +866,8 @@ data "template_file" "render-var-file" {
   template = <<-EOT
 addons-installed       = "${var.addons-installed}"
 var-region             = "${var.var-region}"
+var-nat-instance-ami   = "${var.var-nat-instance-ami}"
+var-nat-instance-type  = "${var.var-nat-instance-type}"
 cluster-name           = "${var.cluster-name}"
 kubernetes-version     = "${var.kubernetes-version}"
 vpc-name               = "${var.vpc-name}"
